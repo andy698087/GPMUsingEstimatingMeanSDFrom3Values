@@ -1,5 +1,5 @@
 # This one, using the multithread, runs quickly (about 10 min for each 100,000 simulations). It obtains results identical to at least 14 digits as the one using no multithread.
-# Run on rapidsai/rapidsai-notebooks container (https://hub.docker.com/r/rapidsai/rapidsai-notebooks) with the Estimate3Vaues.yml enviroment .
+# Run on rapidsai/rapidsai-notebooks container (https://hub.docker.com/r/rapidsai/rapidsai-notebooks) with the Estimate3Vaues.yml enviroment.
 
 import pandas as pd
 import numpy as np
