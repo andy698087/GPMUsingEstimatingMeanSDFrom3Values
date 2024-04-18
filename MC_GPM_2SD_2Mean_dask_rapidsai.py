@@ -19,15 +19,15 @@ utils = rpackages.importr('utils')
 # select the first mirror in the CRAN for R packages
 utils.chooseCRANmirror(ind=1) 
 
-# R package names we needed
+# name of R package we needed
 packnames = ('estmeansd',)
 # Check if the package have already been installed.
 names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
 
-# StrVector is R vector of strings. We selectively install what we needs based on packnames.
+# StrVector is R vector of strings. We selectively install what we need based on packnames.
 if len(names_to_install) > 0:
-    print(f"installing R packages: {names_to_install}")
     utils.install_packages(StrVector(names_to_install))
+    print(f"installing R packages: {names_to_install}")
 else:
     print("R package estmeansd has been installed")
 
@@ -151,7 +151,7 @@ class SimulPivotMC(object):
         print('Mean coverage_Mean')
         # compute the mean of the list of coverage (0 or 1), it equals to the percentage of coverage
         coverage_Mean = df_record['coverage_Mean'].mean()
-        
+
         print('GPM_log_ratio_SD')
         # generate 'ln_ratio' and 'se_ln_ratio' for standard deviations with sample mean and SD using generalized pivotal method
         df_SD = df.apply(self.GPM_log_ratio_SD, args=(0,1,2,3), meta=meta)  
@@ -300,12 +300,12 @@ class SimulPivotMC(object):
 
         return ln_ratio, se_ln_ratio
     
-    def Pivot_calculation_2SD(self, rSampleMeanLogScale, rSampleSDLogScale, N, U, Z):
-        return np.exp(rSampleMeanLogScale- np.sqrt((rSampleSDLogScale**2 * (N-1))/U) * (Z/sqrt(N)) ) * np.sqrt((np.exp((rSampleSDLogScale**2 * (N-1))/U) - 1) * np.exp((rSampleSDLogScale**2 * (N-1))/U))
+    def Pivot_calculation_2SD(self, MeanLogScale, SDLogScale, N, U, Z):
+        return np.exp(MeanLogScale- np.sqrt((SDLogScale**2 * (N-1))/U) * (Z/sqrt(N)) ) * np.sqrt((np.exp((SDLogScale**2 * (N-1))/U) - 1) * np.exp((SDLogScale**2 * (N-1))/U))
 
-    def Pivot_calculation_2mean(self, rSampleMeanLogScale, rSampleSDLogScale, N, U, Z):
+    def Pivot_calculation_2mean(self, MeanLogScale, SDLogScale, N, U, Z):
         sqrt_U = np.sqrt(U)
-        return rSampleMeanLogScale - (Z/sqrt(N)) * (rSampleSDLogScale/(sqrt_U/sqrt(N-1))) + 0.5 * (rSampleSDLogScale/(sqrt_U/sqrt(N-1))) ** 2
+        return MeanLogScale - (Z/sqrt(N)) * (SDLogScale/(sqrt_U/sqrt(N-1))) + 0.5 * (SDLogScale/(sqrt_U/sqrt(N-1))) ** 2
 
     def Coverage(self, row, col_ln_ratio, col_se_ln_ratio, ideal):
         
@@ -321,7 +321,7 @@ class SimulPivotMC(object):
         return int(intervals_include_zero)  
 
 # assign output folder, create new one if not existed
-folder = "MeanSD_From3ValuesInRaw_BCQEMLN_20240418_nSim1M"
+folder = "MeanSD_From3ValuesInRaw_BCQEMLN_nSim1M"
 os.makedirs(folder, exist_ok = True)
 
 # check if there are existed files from previous run; for continuing previous run
@@ -334,7 +334,7 @@ for file_name in matching_files:
 
 if __name__ == '__main__':
     # number of Monte Carlo simulations
-    nMonteSim = 100000
+    nMonteSim = 1000000
     # Sample size, we choose 15, 27, 51, notation "n" in the manuscript
     for N in [15, 27, 51]:
         # coefficient of variation, we choose 0.15, 0.3, 0.5
@@ -350,7 +350,7 @@ if __name__ == '__main__':
                 # record the datetime at the start
                 start_time = datetime.now() 
                 print('start_time:', start_time) 
-                print(f"Start GPM_MC_nMonteSim_{nMonteSim}_N_{N}_CV_{CV}_{str(start_time).split('.')[0].replace('-','').replace(' ','').replace(':','')}_{method}")
+                print(f"Start GPM_MC_nMonteSim_{nMonteSim}_N_{N}_CV_{CV}_{start_time.strftime('%Y%m%d%H%M%S')}_{method}")
 
                 # Cal the class SimulPivotMC(), generate variables in the def __init__(self)
                 run = SimulPivotMC(nMonteSim, N, CV)  
@@ -368,7 +368,7 @@ if __name__ == '__main__':
                 print('coverage SD: %s' %(coverage_SD,)) 
                 print('coverage Mean: %s' %(coverage_Mean,)) 
 
-                output_dir = f"MeanSD_From5Values_nMonte_{nMonte}_N_{N1}_CV_{CV1}_{str(end_time).split('.')[0].replace('-','').replace(' ','').replace(':','')}"
+                output_dir = f"MeanSD_From5Values_nMonte_{nMonte}_N_{N1}_CV_{CV1}_{end_time.strftime('%Y%m%d%H%M%S')}"
                 output_dir = os.path.join(folder,output_dir)
                 
                 # save the results to the csv
