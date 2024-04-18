@@ -53,7 +53,6 @@ def ThreeValues_to_Mean_SD_Luo_Wan(q1, median, q3, N):
     est_mean = opt_weight * (q1 + q3)/2 + (1-opt_weight) * median
     # estimating standard deviations based on Wan et al's method
     est_SD = (q3 - q1)/(2 * norm.ppf((0.75 * N - 0.125)/(N + 0.25))) # loc=0, scale=1
-
     return est_mean, est_SD
 
 def transform_from_raw_to_log_mean_SD(Mean, SD):        
@@ -63,25 +62,23 @@ def transform_from_raw_to_log_mean_SD(Mean, SD):
     # Mean in log scale
     MeanLogScale_1 = log(Mean/sqrt(CVsq + 1)) 
     # SD in log scale
-    SDLogScale_1 = sqrt(log((CVsq + 1)))
-    
+    SDLogScale_1 = sqrt(log((CVsq + 1)))    
     return MeanLogScale_1, SDLogScale_1
 
-def first_two_moment(SampleMean1, SampleSD1, SampleMean2, SampleSD2):
+def first_two_moment(Mean1, SD1, Mean2, SD2):
     # transforming raw means and standard deviations to log scale using first two moments
-    rSampleMeanLogScale1, rSampleSDLogScale1 = transform_from_raw_to_log_mean_SD(SampleMean1, SampleSD1)
-    rSampleMeanLogScale2, rSampleSDLogScale2 = transform_from_raw_to_log_mean_SD(SampleMean2, SampleSD2)
-                
-    return rSampleMeanLogScale1, rSampleSDLogScale1, rSampleMeanLogScale2, rSampleSDLogScale2
+    MeanLogScale1, SDLogScale1 = transform_from_raw_to_log_mean_SD(Mean1, SD1)
+    MeanLogScale2, SDLogScale2 = transform_from_raw_to_log_mean_SD(Mean2, SD2)                
+    return MeanLogScale1, SDLogScale1, MeanLogScale2, SDLogScale2
 
-def Pivot_calculation_2SD(rSampleMeanLogScale, rSampleSDLogScale, N, U, Z):
+def Pivot_calculation_2SD(MeanLogScale, SDLogScale, N, U, Z):
     # calculating log ratio of standard deviations using generalized pivotal method
-    return np.exp(rSampleMeanLogScale- np.sqrt((rSampleSDLogScale**2 * (N-1))/U) * (Z/sqrt(N)) ) * np.sqrt((np.exp((rSampleSDLogScale**2 * (N-1))/U) - 1) * np.exp((rSampleSDLogScale**2 * (N-1))/U))
+    return np.exp(MeanLogScale- np.sqrt((SDLogScale**2 * (N-1))/U) * (Z/sqrt(N)) ) * np.sqrt((np.exp((SDLogScale**2 * (N-1))/U) - 1) * np.exp((SDLogScale**2 * (N-1))/U))
 
-def Pivot_calculation_2mean(rSampleMeanLogScale, rSampleSDLogScale, N, U, Z):
+def Pivot_calculation_2mean(MeanLogScale, SDLogScale, N, U, Z):
     # calculating log ratio of means using generalized pivotal method
     sqrt_U = np.sqrt(U)
-    return rSampleMeanLogScale - (Z/sqrt(N)) * (rSampleSDLogScale/(sqrt_U/sqrt(N-1))) + 0.5 * (rSampleSDLogScale/(sqrt_U/sqrt(N-1))) ** 2
+    return MeanLogScale - (Z/sqrt(N)) * (SDLogScale/(sqrt_U/sqrt(N-1))) + 0.5 * (SDLogScale/(sqrt_U/sqrt(N-1))) ** 2
 
 def GPM_log_ratio_SD(SampleMeanLog1, SampleSDLog1, SampleMeanLog2, SampleSDLog2):
     # calculating log ratio of standard deviations using generalized pivotal method
@@ -132,15 +129,15 @@ utils = rpackages.importr('utils')
 # select the first mirror in the CRAN for R packages
 utils.chooseCRANmirror(ind=1) 
 
-# R package names we needed
+# name of R package we needed
 packnames = ('estmeansd',)
 # Check if the package have already been installed.
 names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
 
-# StrVector is R vector of strings. We selectively install what we needs based on packnames.
+# StrVector is R vector of strings. We selectively install what we need based on packnames.
 if len(names_to_install) > 0:
-    print(f"installing R packages: {names_to_install}")
     utils.install_packages(StrVector(names_to_install))
+    print(f"installing R packages: {names_to_install}")    
 else:
     print("R package estmeansd has been installed")
 
@@ -169,7 +166,7 @@ random_numbers2_2 = np.random.rand(nSimulForPivot)
 
     
 # assign output folder, create new one if not existed
-folder = "MeanSD_From3ValuesInRaw_BCQEMLN_20240418_nSim1M-1"
+folder = "MeanSD_From3ValuesInRaw_BCQEMLN_nSim1M"
 os.makedirs(folder, exist_ok = True)
 
 # check if there are existed files from previous run; for continuing previous run
@@ -181,7 +178,7 @@ for file_name in matching_files:
     done_list.append((match.group(2), match.group(3), match.group(5)))
 
 # number of Monte Carlo simulations
-nMonte = 10
+nMonte = 1000000
 # Sample size, we choose 15, 27, 51, notation "n" in the manuscript
 for N in [15, 27, 51]:
     # Sample size, we choose 15, 27, 51, notation "n" in the manuscript
@@ -218,13 +215,13 @@ for N in [15, 27, 51]:
             
             # if already done in previous run, skip this setting
             if (str(N),str(CV),method) in done_list:
-                print(f"{(str(N),str(CV),method)} has been done and skip")
+                print(f"N={str(N)}, CV={str(CV)}, method={method} has been done and skip")
                 continue
             
             # record the datetime at the start
             start_time = datetime.now() 
             print('start_time:', start_time) 
-            print(f"Start GPM_MC_nMonteSim_{nMonte}_N_{N}_CV_{CV}_{str(start_time).split('.')[0].replace('-','').replace(' ','').replace(':','')}_{method}")
+            print(f"Start GPM_MC_nMonteSim_{nMonte}_N_{N}_CV_{CV}_{method}_{start_time.strftime('%Y%m%d%H%M%S')}")
 
             #collecting results
             dict_results = {'ln_ratio_Mean': [], 'se_ln_ratio_Mean': [], 'coverage_Mean': [], 'ln_ratio_SD': [], 'se_ln_ratio_SD': [], 'coverage_SD': []}
@@ -257,11 +254,9 @@ for N in [15, 27, 51]:
                     # transform to samples from log to raw scale            
                     rSampleOfRandoms = np.exp(rSampleOfRandoms)
 
-                    print(f'get_estimated_Mean_SD_from_Samples with method = {method}')
                     # calculate estimated sample mean and SD from medians and interquartile ranges using the specified method
                     rSampleMean1, rSampleSD1, rSampleMean2, rSampleSD2 = get_estimated_Mean_SD_from_Samples(rSampleOfRandoms, method = method)
                     
-                    print('first_two_moment')
                     # transform estimated ample mean and SD in log scale using estimated Mean and SD
                     rSampleMeanLogScale1, rSampleSDLogScale1, rSampleMeanLogScale2, rSampleSDLogScale2 = first_two_moment(rSampleMean1, rSampleSD1, rSampleMean2, rSampleSD2)
 
@@ -298,7 +293,7 @@ for N in [15, 27, 51]:
             print('coverage SD: %s' %(mean_coverage_SD,)) 
             print('coverage Mean: %s' %(mean_coverage_Mean,)) 
 
-            output_dir = f"MeanSD_From5Values_nMonte_{nMonte}_N_{N1}_CV_{CV1}_{str(end_time).split('.')[0].replace('-','').replace(' ','').replace(':','')}"
+            output_dir = f"MeanSD_From5Values_nMonte_{nMonte}_N_{N1}_CV_{CV1}_{end_time.strftime('%Y%m%d%H%M%S')}"
             output_dir = os.path.join(folder,output_dir)
             
             # save the results to the csv
