@@ -1,5 +1,5 @@
 # This one, using the multithread, runs quickly (about 10 min for each 100,000 simulations). It obtains results identical to at least 14 digits as the one using no multithread.
-# Run on rapidsai/rapidsai-notebooks container (https://hub.docker.com/r/rapidsai/rapidsai-notebooks) with the Estimate3Vaues.yml environment.
+# Run on rapidsai/rapidsai-notebooks container (https://hub.docker.com/r/rapidsai/rapidsai-notebooks) with the Estimate3Values.yml environment.
 
 import pandas as pd
 import numpy as np
@@ -21,7 +21,7 @@ utils.chooseCRANmirror(ind=1)
 
 # name of R package we needed
 packnames = ('estmeansd',)
-# Check if the package have already been installed.
+# Check if the packages have already been installed.
 names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
 
 # StrVector is R vector of strings. We selectively install what we need based on packnames.
@@ -129,11 +129,11 @@ class SimulPivotMC(object):
             meta = ('float64', 'float64')
 
             print('first_two_moment')
-            # transform estimated ample mean and SD in log scale using estimated Mean and SD
+            # transform estimated sample mean and SD in log scale using estimated Mean and SD
             df = df.apply(self.first_two_moment, axis=1, args=(0,1,2,3), meta=meta) 
                            
         else:
-            # if no method choosed, print this warning
+            # if no method chosen, print this warning
             print('no method in main')
 
         df_record[['rSampleMeanLogScale1', 'rSampleSDLogScale1', 'rSampleMeanLogScale2', 'rSampleSDLogScale2']] = df.compute().tolist()
@@ -184,7 +184,7 @@ class SimulPivotMC(object):
         
         # the mean of rSampleOfRandoms1
         rSampleMean1 = np.mean(rSampleOfRandoms1)  
-        # the standard deviation of rSampleOfRandoms1, delta degree of freeden = 1
+        # the standard deviation of rSampleOfRandoms1, delta degree of freedom = 1
         rSampleSD1 = np.std(rSampleOfRandoms1, ddof=1) 
         rSampleMean2 = np.mean(rSampleOfRandoms2)
         rSampleSD2 = np.std(rSampleOfRandoms2, ddof=1)
@@ -352,7 +352,7 @@ if __name__ == '__main__':
                 print('start_time:', start_time) 
                 print(f"Start GPM_MC_nMonteSim_{nMonteSim}_N_{N}_CV_{CV}_{start_time.strftime('%Y%m%d%H%M%S')}_{method}")
 
-                # Cal the class SimulPivotMC(), generate variables in the def __init__(self)
+                # Call the class SimulPivotMC(), generate variables in the def __init__(self)
                 run = SimulPivotMC(nMonteSim, N, CV)  
                 # start main()
                 coverage_SD, coverage_Mean, df_record, nMonte, N1, CV1, method = run.main(method=method)  
