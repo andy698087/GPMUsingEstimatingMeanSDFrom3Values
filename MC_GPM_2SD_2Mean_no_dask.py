@@ -131,7 +131,7 @@ utils.chooseCRANmirror(ind=1)
 
 # name of R package we needed
 packnames = ('estmeansd',)
-# Check if the package have already been installed.
+# Check if the packages have already been installed.
 names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
 
 # StrVector is R vector of strings. We selectively install what we need based on packnames.
@@ -242,7 +242,7 @@ for N in [15, 27, 51]:
 
                     # the mean of rSampleOfRandoms1
                     rSampleMeanLogScale1 = np.mean(rSampleOfRandoms1)  
-                    # the standard deviation of rSampleOfRandoms1, delta degree of freeden = 1
+                    # the standard deviation of rSampleOfRandoms1, delta degree of freedom = 1
                     rSampleSDLogScale1 = np.std(rSampleOfRandoms1, ddof=1) 
                     rSampleMeanLogScale2 = np.mean(rSampleOfRandoms2)
                     rSampleSDLogScale2 = np.std(rSampleOfRandoms2, ddof=1)
@@ -257,7 +257,7 @@ for N in [15, 27, 51]:
                     # calculate estimated sample mean and SD from medians and interquartile ranges using the specified method
                     rSampleMean1, rSampleSD1, rSampleMean2, rSampleSD2 = get_estimated_Mean_SD_from_Samples(rSampleOfRandoms, method = method)
                     
-                    # transform estimated ample mean and SD in log scale using estimated Mean and SD
+                    # transform estimated sample mean and SD in log scale using estimated Mean and SD
                     rSampleMeanLogScale1, rSampleSDLogScale1, rSampleMeanLogScale2, rSampleSDLogScale2 = first_two_moment(rSampleMean1, rSampleSD1, rSampleMean2, rSampleSD2)
 
                 # generate 'ln_ratio' and 'se_ln_ratio' for standard deviations with sample mean and SD using generalized pivotal method
